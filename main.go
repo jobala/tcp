@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/jobala/tcp/arp"
 	"github.com/songgao/packets/ethernet"
 	"github.com/songgao/water"
 )
@@ -28,6 +29,14 @@ func main() {
 		}
 
 		frame = frame[:n]
+		a := &arp.Arp{
+			Device: device,
+		}
+
+		if frame.Ethertype() == ethernet.ARP {
+			a.HandleFrame(frame)
+		}
+
 		log.Printf("Dst: %s\n", frame.Destination())
 		log.Printf("Src: %s\n", frame.Source())
 		log.Printf("Ethertype: % x\n", frame.Ethertype())

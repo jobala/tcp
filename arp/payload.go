@@ -2,6 +2,8 @@ package arp
 
 import (
 	"encoding/binary"
+
+	"github.com/songgao/packets/ethernet"
 )
 
 type payload struct {
@@ -16,6 +18,16 @@ type payload struct {
 	target_ip  []byte
 }
 
+func NewPayload(arpOp uint16) *payload {
+	return &payload{
+		hard_type: Ethernet,
+		prot_type: IPv4,
+		hard_size: MacAddrSize,
+		prot_size: IPv4AddrSize,
+		op:        arpOp,
+	}
+}
+
 func (p *payload) ToByte() []byte {
 	packet := make([]byte, 28)
 
@@ -24,9 +36,9 @@ func (p *payload) ToByte() []byte {
 	packet[4] = p.hard_size
 	packet[5] = p.prot_size
 	binary.BigEndian.PutUint16(packet[6:8], p.op)
-	copy(packet[8:15], p.sender_mac)
+	copy(packet[8:14], p.sender_mac)
 	copy(packet[14:18], p.sender_ip)
-	copy(packet[18:25], p.target_mac)
+	copy(packet[18:24], p.target_mac)
 	copy(packet[24:28], p.target_ip)
 
 	return packet
@@ -43,4 +55,15 @@ func (p *payload) FromByte(data []byte) *payload {
 	p.target_mac = data[18:24]
 	p.target_ip = data[24:28]
 	return p
+}
+
+func (p *payload) ToEthernetFrame() []byte {
+	frame := make([]byte, 64)
+
+	copy(frame[0:6], p.target_mac)
+	copy(frame[6:13], p.sender_mac)
+	copy(frame[13:15], ethernet.ARP[:])
+	copy(frame[15:43], p.ToByte())
+
+	return frame
 }
