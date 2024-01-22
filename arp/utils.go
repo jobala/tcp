@@ -12,3 +12,4 @@ const (
 )
 
 const RequestTimeout = 500 * time.Millisecond
+const IP = "10.1.0.10"

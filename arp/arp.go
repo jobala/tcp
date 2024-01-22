@@ -2,7 +2,7 @@ package arp
 
 import (
 	"fmt"
-
+	"net"
 	"os"
 
 	"github.com/songgao/packets/ethernet"
@@ -14,10 +14,16 @@ type Arp struct {
 	cache  map[string]string
 }
 
+func NewArp(device *water.Interface) *Arp {
+	return &Arp{
+		Device: device,
+		cache:  make(map[string]string, 0),
+	}
+}
+
 func (a *Arp) HandleFrame(frame ethernet.Frame) {
 	p := &payload{}
 	p.FromByte(frame.Payload())
-	fmt.Printf("%v#", p)
 
 	if p.hard_type != Ethernet {
 		fmt.Printf("unsupported hardware type: %d\n", p.hard_type)
@@ -31,10 +37,11 @@ func (a *Arp) HandleFrame(frame ethernet.Frame) {
 
 	switch p.op {
 	case ArpRequest:
-		a.reply(*p)
+		a.reply(p)
 	default:
 		fmt.Fprintf(os.Stdout, "unsupported op code: %d\n", []any{p.op}...)
 	}
+
 }
 
 func (a *Arp) updateCache(p payload) {
@@ -43,15 +50,21 @@ func (a *Arp) updateCache(p payload) {
 	a.cache[key] = value
 }
 
-func (a *Arp) reply(p payload) {
-	sender_ip := p.sender_ip
-	sender_mac := p.sender_mac
+func (a *Arp) reply(p *payload) {
+	mac, _ := net.ParseMAC("8e:8d:d5:66:07:b9")
 
-	p.op = ArpReply
-	p.sender_mac = p.target_mac
-	p.sender_ip = p.target_ip
-	p.target_ip = sender_ip
-	p.target_mac = sender_mac
+	reply := &payload{
+		hard_type:  Ethernet,
+		prot_type:  IPv4,
+		hard_size:  MacAddrSize,
+		prot_size:  IPv4AddrSize,
+		op:         ArpReply,
+		sender_mac: mac,
+		sender_ip:  []byte{10, 1, 0, 10},
+		target_mac: p.sender_mac,
+		target_ip:  []byte{10, 22, 14, 78},
+	}
 
-	a.Device.Write(p.ToEthernetFrame())
+	fmt.Printf("%v#", reply.ToEthernetFrame())
+	a.Device.Write(reply.ToEthernetFrame())
 }

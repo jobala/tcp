@@ -2,8 +2,6 @@ package arp
 
 import (
 	"encoding/binary"
-
-	"github.com/songgao/packets/ethernet"
 )
 
 type payload struct {
@@ -62,7 +60,7 @@ func (p *payload) ToEthernetFrame() []byte {
 
 	copy(frame[0:6], p.target_mac)
 	copy(frame[6:13], p.sender_mac)
-	copy(frame[13:15], ethernet.ARP[:])
+	copy(frame[13:15], []byte{0x08, 0x06})
 	copy(frame[15:43], p.ToByte())
 
 	return frame

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/jobala/tcp/arp"
@@ -29,17 +30,12 @@ func main() {
 		}
 
 		frame = frame[:n]
-		a := &arp.Arp{
-			Device: device,
-		}
+
+		a := arp.NewArp(device)
 
 		if frame.Ethertype() == ethernet.ARP {
+			fmt.Println("Handling arp frame")
 			a.HandleFrame(frame)
 		}
-
-		log.Printf("Dst: %s\n", frame.Destination())
-		log.Printf("Src: %s\n", frame.Source())
-		log.Printf("Ethertype: % x\n", frame.Ethertype())
-		log.Printf("Payload: % x\n", frame.Payload())
 	}
 }
