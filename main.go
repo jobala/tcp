@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/jobala/tcp/arp"
@@ -13,9 +12,11 @@ func main() {
 	config := water.Config{
 		DeviceType: water.TAP,
 	}
-	config.Name = "tcp"
+	config.Name = "tap0"
 
 	device, err := water.New(config)
+	defer device.Close()
+
 	if err != nil {
 		log.Fatal("Failed to create a tap device\n", err)
 	}
@@ -34,7 +35,6 @@ func main() {
 		a := arp.NewArp(device)
 
 		if frame.Ethertype() == ethernet.ARP {
-			fmt.Println("Handling arp frame")
 			a.HandleFrame(frame)
 		}
 	}

@@ -2,6 +2,7 @@ package arp
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 
@@ -35,6 +36,7 @@ func (a *Arp) HandleFrame(frame ethernet.Frame) {
 
 	a.updateCache(*p)
 
+	fmt.Println(p.op)
 	switch p.op {
 	case ArpRequest:
 		a.reply(p)
@@ -62,9 +64,14 @@ func (a *Arp) reply(p *payload) {
 		sender_mac: mac,
 		sender_ip:  []byte{10, 1, 0, 10},
 		target_mac: p.sender_mac,
-		target_ip:  []byte{10, 22, 14, 78},
+		target_ip:  []byte{185, 180, 221, 110},
 	}
 
 	fmt.Printf("%v#", reply.ToEthernetFrame())
-	a.Device.Write(reply.ToEthernetFrame())
+
+	if _, err := a.Device.Write(reply.ToEthernetFrame()); err != nil {
+		log.Fatal("something went wrong", err)
+	}
+
+	log.Println("frame sent successfully")
 }
