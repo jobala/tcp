@@ -26,6 +26,10 @@ func (a *Arp) HandleFrame(frame ethernet.Frame) {
 	p := &payload{}
 	p.FromByte(frame.Payload())
 
+    fmt.Printf("ARP Request: %+v", p)
+    fmt.Println(p.sender_ip)
+    fmt.Println("--------------*****-------------")
+
 	if p.hard_type != Ethernet {
 		fmt.Printf("unsupported hardware type: %d\n", p.hard_type)
 		return
@@ -36,7 +40,6 @@ func (a *Arp) HandleFrame(frame ethernet.Frame) {
 
 	a.updateCache(*p)
 
-	fmt.Println(p.op)
 	switch p.op {
 	case ArpRequest:
 		a.reply(p)
@@ -53,7 +56,7 @@ func (a *Arp) updateCache(p payload) {
 }
 
 func (a *Arp) reply(p *payload) {
-	mac, _ := net.ParseMAC("8e:8d:d5:66:07:b9")
+	mac, _ := net.ParseMAC("66:fa:dd:a9:92:48")
 
 	reply := &payload{
 		hard_type:  Ethernet,
@@ -64,11 +67,11 @@ func (a *Arp) reply(p *payload) {
 		sender_mac: mac,
 		sender_ip:  []byte{10, 1, 0, 10},
 		target_mac: p.sender_mac,
-		target_ip:  []byte{185, 180, 221, 110},
+		target_ip:  p.sender_ip,
 	}
 
-	fmt.Printf("%v#", reply.ToEthernetFrame())
 
+    fmt.Printf("ARP Reply: %+v", reply)
 	if _, err := a.Device.Write(reply.ToEthernetFrame()); err != nil {
 		log.Fatal("something went wrong", err)
 	}

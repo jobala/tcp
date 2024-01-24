@@ -15,6 +15,9 @@ func main() {
 	config.Name = "tap0"
 
 	device, err := water.New(config)
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer device.Close()
 
 	if err != nil {
