@@ -57,11 +57,12 @@ func (p *payload) FromByte(data []byte) *payload {
 
 func (p *payload) ToEthernetFrame() []byte {
 	frame := make([]byte, 64)
+    etherType := 0x0806 // ARP, you can replace this with other EtherType values
 
 	copy(frame[0:6], p.target_mac)
-	copy(frame[6:13], p.sender_mac)
-	copy(frame[13:15], []byte{0x08, 0x06})
-	copy(frame[15:43], p.ToByte())
+	copy(frame[6:12], p.sender_mac)
+    binary.BigEndian.PutUint16(frame[12:14], uint16(etherType))
+	copy(frame[14:43], p.ToByte())
 
 	return frame
 }
