@@ -1,6 +1,7 @@
 package arp
 
 import (
+	"encoding/hex"
 	"fmt"
 	"log"
 	"net"
@@ -26,7 +27,7 @@ func (a *Arp) HandleFrame(frame ethernet.Frame) {
 	p := &payload{}
 	p.FromByte(frame.Payload())
 
-    fmt.Println("ARP Request: ", frame)
+	fmt.Println("ARP Request: ", hex.EncodeToString(frame))
 
 	if p.hard_type != Ethernet {
 		fmt.Printf("unsupported hardware type: %d\n", p.hard_type)
@@ -55,7 +56,7 @@ func (a *Arp) updateCache(p payload) {
 
 func (a *Arp) reply(p *payload) {
 	mac, _ := net.ParseMAC("66:fa:dd:a9:92:48")
-    // t_mac, _ := net.ParseMAC("DC:A6:32:8A:80:7B")
+	// t_mac, _ := net.ParseMAC("DC:A6:32:8A:80:7B")
 
 	reply := &payload{
 		hard_type:  Ethernet,
@@ -69,8 +70,7 @@ func (a *Arp) reply(p *payload) {
 		target_ip:  p.sender_ip,
 	}
 
-
-    fmt.Println("ARP Reply:  ", reply.ToEthernetFrame())
+	fmt.Println("ARP Reply:  ", hex.EncodeToString(reply.ToEthernetFrame()))
 	if _, err := a.Device.Write(reply.ToEthernetFrame()); err != nil {
 		log.Fatal("something went wrong", err)
 	}
